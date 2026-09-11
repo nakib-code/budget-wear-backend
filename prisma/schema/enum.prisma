@@ -1,0 +1,10 @@
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
+enum UserRole {
+  ADMIN
+}

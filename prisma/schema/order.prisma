@@ -1,0 +1,11 @@
+model Order {
+  id           Int         @id @default(autoincrement())
+  customerName String
+  phone        String
+  address      String
+  totalAmount  Decimal     @db.Decimal(10, 2)
+  status       OrderStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
+}
