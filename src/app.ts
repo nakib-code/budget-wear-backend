@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import errorMiddleware from "./middlewares/error.middleware";
 import { authRouter } from "./modules/auth/auth.route";
+import { productRoute } from "./modules/product/product.route";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.get("/", (_req, res) => {
 	});
 });
 app.use("/api/auth", authRouter);
+app.use("/api/products", productRoute);
 app.use(errorMiddleware);
 
 export default app;
