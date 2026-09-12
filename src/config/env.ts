@@ -2,25 +2,33 @@ import dotenv from "dotenv";
 import path from "path";
 
 dotenv.config({
-	path: path.join(process.cwd(), ".env"),
+  path: path.join(process.cwd(), ".env"),
 });
 
 const requiredEnv = (key: string): string => {
-	const value = process.env[key];
+  const value = process.env[key];
 
-	if (!value) {
-		throw new Error(`${key} is missing in .env`);
-	}
+  if (!value) {
+    throw new Error(`${key} is missing in .env`);
+  }
 
-	return value;
+  return value;
 };
 
 const env = {
-	port: Number(process.env.PORT) || 5001,
+  port: Number(process.env.PORT) || 5001,
 
-	databaseUrl: requiredEnv("DATABASE_URL"),
-	jwtSecret: requiredEnv("JWT_SECRET"),
-	frontendUrl: requiredEnv("FRONTEND_URL"),
+  databaseUrl: requiredEnv("DATABASE_URL"),
+
+  jwtSecret: requiredEnv("JWT_SECRET"),
+
+  frontendUrl: requiredEnv("FRONTEND_URL"),
+
+  cloudinary: {
+    cloudName: requiredEnv("CLOUDINARY_CLOUD_NAME"),
+    apiKey: requiredEnv("CLOUDINARY_API_KEY"),
+    apiSecret: requiredEnv("CLOUDINARY_API_SECRET"),
+  },
 };
 
 export default env;

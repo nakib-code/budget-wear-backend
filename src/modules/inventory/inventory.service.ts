@@ -1,111 +1,188 @@
 import prisma from "../../config/prisma";
-import type {
-	CreateInventoryInput,
-	UpdateInventoryInput,
-} from "./inventory.validation";
 
-const createInventory = async (data: CreateInventoryInput) => {
-	const product = await prisma.product.findUnique({
-		where: {
-			id: data.productId,
-		},
-	});
+import {
+  deleteImageFromCloudinary,
+  uploadImageToCloudinary,
+} from "../../utils/cloudinaryUpload";
+import { CreateProductInput } from "./inventory.validation";
 
-	if (!product) {
-		throw new Error("Product not found");
-	}
 
-	const existingInventory = await prisma.productInventory.findUnique({
-		where: {
-			productId_size: {
-				productId: data.productId,
-				size: data.size,
-			},
-		},
-	});
+const createProduct = async (
+  data: CreateProductInput,
+  image: Express.Multer.File,
+) => {
+  if (!image) {
+    throw new Error("Product image is required");
+  }
 
-	if (existingInventory) {
-		throw new Error("Inventory for this size already exists");
-	}
+  const uploadedImage = await uploadImageToCloudinary(
+    image.buffer,
+  );
 
-	const inventory = await prisma.productInventory.create({
-		data: {
-			productId: data.productId,
-			size: data.size,
-			stock: data.stock,
-		},
-	});
+  try {
+    const product = await prisma.$transaction(async (tx) => {
+      const createdProduct = await tx.product.create({
+        data: {
+          name: data.name,
+          description: data.description || null,
+          price: data.price,
+          imageUrl: uploadedImage.secure_url,
+          publicId: uploadedImage.public_id,
+        },
+      });
 
-	return inventory;
+      await tx.productInventory.createMany({
+        data: data.sizes.map((item) => ({
+          productId: createdProduct.id,
+          size: item.size,
+          stock: item.stock,
+        })),
+      });
+
+      return tx.product.findUnique({
+        where: {
+          id: createdProduct.id,
+        },
+        include: {
+          inventories: {
+            orderBy: {
+              size: "asc",
+            },
+          },
+        },
+      });
+    });
+
+    return product;
+  } catch (error) {
+    await deleteImageFromCloudinary(
+      uploadedImage.public_id,
+    );
+
+    throw error;
+  }
 };
 
-const getProductInventory = async (productId: number) => {
-	const product = await prisma.product.findUnique({
-		where: {
-			id: productId,
-		},
-	});
+const getAllProducts = async () => {
+  const products = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      inventories: {
+        some: {
+          stock: {
+            gt: 0,
+          },
+        },
+      },
+    },
+    include: {
+      inventories: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
-	if (!product) {
-		throw new Error("Product not found");
-	}
-
-	const inventory = await prisma.productInventory.findMany({
-		where: {
-			productId,
-		},
-		orderBy: {
-			size: "asc",
-		},
-	});
-
-	return inventory;
+  return products;
 };
 
-const updateInventory = async (id: number, data: UpdateInventoryInput) => {
-	const existingInventory = await prisma.productInventory.findUnique({
-		where: {
-			id,
-		},
-	});
+const getProductById = async (id: number) => {
+  const product = await prisma.product.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      inventories: true,
+    },
+  });
 
-	if (!existingInventory) {
-		throw new Error("Inventory not found");
-	}
+  if (!product) {
+    throw new Error("Product not found");
+  }
 
-	const inventory = await prisma.productInventory.update({
-		where: {
-			id,
-		},
-		data: {
-			stock: data.stock,
-		},
-	});
-
-	return inventory;
+  return product;
 };
 
-const deleteInventory = async (id: number) => {
-	const existingInventory = await prisma.productInventory.findUnique({
-		where: {
-			id,
-		},
-	});
+const updateProduct = async (
+  id: number,
+  data: UpdateProductInput,
+  image?: Express.Multer.File,
+) => {
+  const existingProduct = await prisma.product.findUnique({
+    where: {
+      id,
+    },
+  });
 
-	if (!existingInventory) {
-		throw new Error("Inventory not found");
-	}
+  if (!existingProduct) {
+    throw new Error("Product not found");
+  }
 
-	await prisma.productInventory.delete({
-		where: {
-			id,
-		},
-	});
+  let imageData = {};
+
+  if (image) {
+    const uploadedImage = await uploadImageToCloudinary(
+      image.buffer,
+    );
+
+    imageData = {
+      imageUrl: uploadedImage.secure_url,
+      publicId: uploadedImage.public_id,
+    };
+
+    if (existingProduct.publicId) {
+      await deleteImageFromCloudinary(
+        existingProduct.publicId,
+      );
+    }
+  }
+
+  const product = await prisma.product.update({
+    where: {
+      id,
+    },
+    data: {
+      ...data,
+      ...imageData,
+    },
+    include: {
+      inventories: true,
+    },
+  });
+
+  return product;
+};
+
+const deleteProduct = async (id: number) => {
+  const existingProduct = await prisma.product.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!existingProduct) {
+    throw new Error("Product not found");
+  }
+
+  if (existingProduct.publicId) {
+    await deleteImageFromCloudinary(
+      existingProduct.publicId,
+    );
+  }
+
+  await prisma.product.delete({
+    where: {
+      id,
+    },
+  });
+
+  return null;
 };
 
 export default {
-	createInventory,
-	getProductInventory,
-	updateInventory,
-	deleteInventory,
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProduct,
+  deleteProduct,
 };
