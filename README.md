@@ -1,257 +1,852 @@
-# PH Healthcare System — Backend
+# Budget Wear Backend
 
-REST API for a doctor-appointment platform: patients book consultations, doctors run them, admins manage the platform. This repo is the backend only.
+Backend API for **Budget Wear**, a men's fashion e-commerce platform.
 
-**Stack:** Node.js · Express 5 · TypeScript · Prisma 7 · PostgreSQL · JWT auth
+This backend provides authentication, product management, Cloudinary image uploads, size-based inventory management, order processing, and admin order management.
 
-## Where the project stands today
+---
 
-This is an early build, not the finished product. Right now the only working feature is authentication — a patient can register, log in, and fetch their own profile. Appointments, doctor schedules, payments, and everything else in [`Project Requirements.md`](./Project%20Requirements.md) is planned but not built yet.
+## Features
 
-Treat this README as a description of what the code *actually does today*, including its rough edges. A few are called out directly in [Known limitations](#known-limitations) further down — read that section before assuming something is broken on your end.
+* Admin authentication with JWT
+* Role-based protected admin routes
+* Product CRUD operations
+* Product image upload with Cloudinary
+* Cloudinary image replacement and cleanup
+* Size-based product inventory
+* Stock management
+* Customer order creation
+* Order item management
+* Order status management
+* Stock restoration for cancelled orders
+* Soft delete for products
+* PostgreSQL database
+* Prisma ORM
+* Zod validation
+* RESTful API
+* Production-ready TypeScript setup
+* `tsup` production build
 
-## Prerequisites
+---
 
-| Tool           | Version | Check with |
-| -------------- | ------- | ---------- |
-| **Node.js**    | 20+     | `node -v`  |
-| **PostgreSQL** | 14+     | `psql -V`  |
+## Tech Stack
 
-Any package manager works (npm, pnpm, yarn, bun). The examples below use `npm`.
+| Technology | Purpose               |
+| ---------- | --------------------- |
+| Node.js    | Runtime               |
+| Express.js | REST API framework    |
+| TypeScript | Type safety           |
+| PostgreSQL | Database              |
+| Prisma     | ORM                   |
+| Zod        | Request validation    |
+| JWT        | Authentication        |
+| bcrypt     | Password hashing      |
+| Cloudinary | Image storage         |
+| Multer     | Image upload handling |
+| tsup       | Production build      |
+| Vercel     | Deployment            |
 
-## Getting started
+---
 
-**1. Install dependencies**
+## Project Structure
+
+```text
+src/
+├── config/
+│   ├── cloudinary.ts
+│   ├── env.ts
+│   └── prisma.ts
+│
+├── middlewares/
+│   ├── auth.middleware.ts
+│   └── upload.middleware.ts
+│
+├── modules/
+│   ├── auth/
+│   │   ├── auth.controller.ts
+│   │   ├── auth.route.ts
+│   │   ├── auth.service.ts
+│   │   └── auth.validation.ts
+│   │
+│   ├── product/
+│   │   ├── product.controller.ts
+│   │   ├── product.route.ts
+│   │   ├── product.service.ts
+│   │   └── product.validation.ts
+│   │
+│   ├── inventory/
+│   │   ├── inventory.controller.ts
+│   │   ├── inventory.route.ts
+│   │   ├── inventory.service.ts
+│   │   └── inventory.validation.ts
+│   │
+│   └── order/
+│       ├── order.controller.ts
+│       ├── order.route.ts
+│       ├── order.service.ts
+│       └── order.validation.ts
+│
+├── utils/
+│   └── cloudinaryUpload.ts
+│
+└── server.ts
+
+prisma/
+└── schema.prisma
+
+tsup.config.ts
+package.json
+```
+
+---
+
+## Requirements
+
+Before running the project, make sure you have:
+
+* Node.js 24+
+* PostgreSQL database
+* Cloudinary account
+* npm
+
+---
+
+## Installation
+
+Clone the project and install dependencies:
 
 ```bash
 npm install
 ```
 
-**2. Set up your environment file**
+---
 
-```bash
-cp .env.example .env
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+PORT=5001
+
+DATABASE_URL=your_postgresql_database_url
+
+JWT_SECRET=your_jwt_secret
+
+FRONTEND_URL=http://localhost:3000
+
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
-Open `.env` and point `DATABASE_URL` at a Postgres database you can connect to:
+### Production
 
+For production, set:
+
+```env
+PORT=5001
+
+DATABASE_URL=your_production_database_url
+
+JWT_SECRET=your_production_jwt_secret
+
+FRONTEND_URL=https://budget-wear.vercel.app
+
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
-DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@localhost:5432/ph_healthcare?schema=public"
-```
 
-The database doesn't need to exist beforehand — `prisma migrate dev` creates it. The other variables in `.env.example` are fine to leave as-is for local development; see [Environment variables](#environment-variables) for what each one does.
+Never commit `.env` to Git.
 
-**3. Generate the Prisma client**
+---
 
-```bash
-npx prisma generate
-```
+## Database Setup
 
-Prisma writes a typed client into `src/generated/prisma`. That folder is git-ignored, so a fresh clone never has it, and almost every file under `src/` imports from it — skip this step and nothing compiles. Re-run it any time you change a file in `prisma/schema/`.
-
-**4. Run the migrations**
+Run Prisma migration:
 
 ```bash
 npx prisma migrate dev
 ```
 
-This creates the `user` and `patient` tables using the SQL already committed under `prisma/migrations/`.
+Generate Prisma client:
 
-**5. Start the server**
+```bash
+npx prisma generate
+```
+
+For production:
+
+```bash
+npx prisma migrate deploy
+```
+
+---
+
+## Development
+
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-You should see:
+The server will run at:
 
-```
-Connected to the database successfully.
-Server is running on port 5000
+```text
+http://localhost:5001
 ```
 
-Confirm it's up:
+---
+
+## Production Build
+
+Build the backend with `tsup`:
 
 ```bash
-curl http://localhost:5000/
-# {"success":true,"message":"Welcome to PH Healthcare System Backend"}
+npm run build
 ```
 
-## Environment variables
+The output will be generated inside:
 
-`src/app/config/index.ts` is the only place `process.env` is read — application code should import `config` from there rather than reaching for `process.env` directly.
+```text
+dist/
+└── server.js
+```
 
-| Variable                  | What it's for                                                      |
-| -------------------------- | ------------------------------------------------------------------ |
-| `NODE_ENV`                 | `development` includes the raw error and stack trace in API error responses |
-| `PORT`                     | Port the HTTP server listens on                                    |
-| `DATABASE_URL`             | Postgres connection string, used by both Prisma and the app        |
-| `JWT_ACCESS_SECRET`        | Signing key for access tokens                                      |
-| `JWT_REFRESH_SECRET`       | Signing key for refresh tokens                                     |
-| `JWT_ACCESS_EXPIRES_IN`    | Access token lifetime (e.g. `15m`, `1d`)                            |
-| `JWT_REFRESH_EXPIRES_IN`   | Refresh token lifetime                                              |
-| `BCRYPT_SALT_ROUNDS`       | Read into config but not wired up yet — password hashing currently uses a hardcoded value (see below) |
-| `BACKEND_URL`              | Read into config but not used anywhere yet                          |
-| `FRONTEND_URL`             | Added to the CORS allowlist                                        |
-
-There's no validation on startup: if a variable is missing, `config` simply holds `undefined` for it, and the app boots anyway. The first sign of trouble is usually a runtime error the moment that value is actually used — for `JWT_ACCESS_SECRET`, that means the very first login or registration.
-
-Before deploying anywhere, replace the JWT secrets — the ones in `.env.example` are placeholders anyone can guess:
+Run the production server:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+npm start
 ```
 
-## Project structure
+---
 
-```
-src/
-├── server.ts                       # connects to the DB, then starts listening
-├── app.ts                          # express app: cors, body parsing, routes, error handling
-├── generated/prisma/                # Prisma client — git-ignored, run `npx prisma generate`
-└── app/
-    ├── config/index.ts              # reads and exposes every environment variable
-    ├── lib/prisma.ts                # shared PrismaClient instance — always import this, don't `new` your own
-    ├── middleware/
-    │   ├── checkAuth.ts             # exports `auth(...roles)`, the JWT + role guard
-    │   ├── globalErrorHandler.ts    # turns thrown errors into JSON responses
-    │   └── notFound.ts              # catch-all for unmatched routes
-    ├── utils/
-    │   ├── catchAsync.ts            # wraps async route handlers so thrown errors reach the error handler
-    │   ├── jwt.ts                   # sign / verify helpers
-    │   └── sendResponse.ts          # the standard `{ success, statusCode, message, data }` envelope
-    └── module/
-        └── auth/                    # the one feature module that exists so far
-            ├── auth.route.ts
-            ├── auth.controller.ts
-            ├── auth.service.ts
-            └── auth.interface.ts
+## API Base URL
 
-prisma/
-├── schema/
-│   ├── schema.prisma                # generator + datasource only
-│   ├── user.prisma
-│   ├── patient.prisma
-│   └── enums.prisma                 # Role, UserStatus, Gender
-└── migrations/                      # generated SQL, committed to git
+Local:
+
+```text
+http://localhost:5001/api
 ```
 
-Prisma's schema is split across multiple files, wired together by `prisma.config.ts` at the repo root. That file also loads `.env` so the Prisma CLI can see `DATABASE_URL`.
+Production:
 
-**The data model:** a `User` has at most one `Patient` (1-to-1). Registering writes both rows in a single nested Prisma call. Deletes are meant to be soft — there's an `isDeleted` flag and a `deletedAt` timestamp on both models — but nothing in the codebase sets them yet; there's no delete endpoint at all right now.
+```text
+https://budget-wear-backend.vercel.app/api
+```
 
-## The API
+---
 
-Base URL: `http://localhost:5000`
+# API Endpoints
 
-| Method | Path                          | Auth required | Body                         |
-| ------ | ----------------------------- | ------------- | ----------------------------- |
-| `GET`  | `/`                            | –             | health check                  |
-| `POST` | `/api/v1/auth/register`        | –             | `name`, `email`, `password`   |
-| `POST` | `/api/v1/auth/login`           | –             | `email`, `password`           |
-| `GET`  | `/api/v1/auth/me`              | yes           | –                              |
-| `POST` | `/api/v1/auth/refresh-token`   | –             | reads the `refreshToken` cookie |
+## Authentication
 
-Every response from `sendResponse` (i.e. everything except the root route) has this shape:
+### Admin Login
+
+```http
+POST /api/auth/login
+```
+
+Example request:
 
 ```json
-{ "success": true, "statusCode": 200, "message": "...", "data": {} }
+{
+  "email": "admin@example.com",
+  "password": "your-password"
+}
 ```
 
-### Tokens: use the response body, not the cookies
+Example response:
 
-`register` and `login` return `accessToken` and `refreshToken` two ways: in the JSON body, and as cookies. **Use the JSON body.** The cookies are set with `sameSite: "none"` but `secure: false` — that combination is invalid under the cookie spec, and modern browsers silently drop the cookie rather than send it. Grab `data.accessToken` from the response and send it yourself:
-
-```bash
-curl -X POST http://localhost:5000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test Patient","email":"patient@example.com","password":"password123"}'
-
-curl http://localhost:5000/api/v1/auth/me \
-  -H "Authorization: Bearer <accessToken from the response above>"
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "accessToken": "your-jwt-token"
+  }
+}
 ```
 
-`Authorization` accepts either `Bearer <token>` or the raw token with no prefix.
+---
 
-## Roles and authentication
+# Products
 
-Four roles exist in the schema — `SUPER_ADMIN`, `ADMIN`, `DOCTOR`, `PATIENT` — but **registration always creates a `PATIENT`.** `registerPatient` hardcodes `Role.PATIENT` and only reads `name`, `email`, and `password` out of the request body, so sending `"role": "ADMIN"` does nothing. There's no admin module and no seed script, so the other three roles aren't reachable through the API yet. To test them, register a normal user and change their `role` directly in the database with `npx prisma studio` (opens at `http://localhost:5555`) — then log in again, since the role is baked into the token at login time and an old token keeps the old role.
+## Get All Products
 
-`auth(...roles)`, exported from `checkAuth.ts`, is the route guard:
+```http
+GET /api/products
+```
+
+This endpoint is public.
+
+Products with:
+
+* `isActive = true`
+* at least one size with stock greater than `0`
+
+are returned.
+
+---
+
+## Get Product By ID
+
+```http
+GET /api/products/:id
+```
+
+---
+
+## Create Product
+
+```http
+POST /api/products
+```
+
+Authentication required.
+
+Use:
+
+```text
+Authorization: Bearer <token>
+```
+
+Request type:
+
+```text
+multipart/form-data
+```
+
+Fields:
+
+```text
+name
+description
+price
+sizes
+image
+```
+
+Example `sizes`:
+
+```json
+[
+  {
+    "size": "M",
+    "stock": 10
+  },
+  {
+    "size": "L",
+    "stock": 8
+  },
+  {
+    "size": "XL",
+    "stock": 5
+  },
+  {
+    "size": "XXL",
+    "stock": 0
+  }
+]
+```
+
+The image is uploaded to Cloudinary.
+
+The database stores:
+
+```text
+imageUrl
+publicId
+```
+
+---
+
+## Update Product
+
+```http
+PATCH /api/products/:id
+```
+
+Authentication required.
+
+Request type:
+
+```text
+multipart/form-data
+```
+
+Possible fields:
+
+```text
+name
+description
+price
+image
+```
+
+When a new image is uploaded:
+
+```text
+New Image
+    ↓
+Cloudinary Upload
+    ↓
+Database Update
+    ↓
+Old Cloudinary Image Removed
+```
+
+---
+
+## Delete Product
+
+```http
+DELETE /api/products/:id
+```
+
+Authentication required.
+
+Products use **soft delete**.
+
+Instead of removing the database row:
+
+```text
+isActive = false
+```
+
+This protects existing order history and avoids foreign key conflicts with `OrderItem`.
+
+---
+
+# Inventory
+
+## Create Inventory
+
+```http
+POST /api/inventory
+```
+
+Authentication required.
+
+Example:
+
+```json
+{
+  "productId": 4,
+  "size": "M",
+  "stock": 10
+}
+```
+
+---
+
+## Get Product Inventory
+
+```http
+GET /api/inventory/product/:productId
+```
+
+Authentication required.
+
+---
+
+## Update Inventory
+
+```http
+PATCH /api/inventory/:id
+```
+
+Authentication required.
+
+Example:
+
+```json
+{
+  "stock": 25
+}
+```
+
+---
+
+## Delete Inventory
+
+```http
+DELETE /api/inventory/:id
+```
+
+Authentication required.
+
+---
+
+# Orders
+
+## Create Order
+
+```http
+POST /api/orders
+```
+
+Public endpoint.
+
+Customer submits:
+
+```json
+{
+  "customerName": "John Doe",
+  "phone": "01XXXXXXXXX",
+  "address": "Dhaka, Bangladesh",
+  "items": [
+    {
+      "productId": 4,
+      "size": "M",
+      "quantity": 1,
+      "price": 1299
+    }
+  ]
+}
+```
+
+The backend:
+
+1. Validates the order.
+2. Checks product availability.
+3. Checks size-level stock.
+4. Creates the order.
+5. Creates order items.
+6. Deducts inventory stock.
+7. Calculates the order total.
+
+---
+
+## Get Orders
+
+```http
+GET /api/orders
+```
+
+Authentication required.
+
+Used by the admin dashboard.
+
+---
+
+## Update Order Status
+
+```http
+PATCH /api/orders/:id/status
+```
+
+Authentication required.
+
+Example:
+
+```json
+{
+  "status": "CONFIRMED"
+}
+```
+
+Supported statuses:
+
+```text
+PENDING
+CONFIRMED
+DELIVERED
+CANCELLED
+```
+
+When an order is cancelled, the corresponding inventory stock can be restored according to the order service logic.
+
+---
+
+# Product Image Management
+
+Product images are stored using Cloudinary.
+
+## Upload Flow
+
+```text
+Admin
+  ↓
+Image File
+  ↓
+Multer
+  ↓
+Memory Buffer
+  ↓
+Cloudinary
+  ↓
+secure_url + public_id
+  ↓
+PostgreSQL
+```
+
+Cloudinary folder:
+
+```text
+ecommerce/products
+```
+
+The backend stores:
+
+```text
+imageUrl
+publicId
+```
+
+`publicId` is used to remove old images when a product image is replaced.
+
+---
+
+# Database Models
+
+The main product inventory relationship is:
+
+```text
+Product
+   │
+   └── ProductInventory
+          ├── M
+          ├── L
+          ├── XL
+          └── XXL
+```
+
+Example:
+
+```text
+Product #4
+│
+├── M   → 10
+├── L   → 8
+├── XL  → 5
+└── XXL → 0
+```
+
+The inventory model prevents duplicate size entries for the same product:
+
+```prisma
+@@unique([productId, size])
+```
+
+When a product is deleted:
+
+```text
+Product
+   ↓
+ProductInventory
+```
+
+inventory records are removed through:
+
+```prisma
+onDelete: Cascade
+```
+
+Product orders are preserved through soft deletion.
+
+---
+
+# CORS
+
+For local development:
+
+```text
+http://localhost:3000
+```
+
+For production:
+
+```text
+https://budget-wear.vercel.app
+```
+
+The backend must allow the frontend origin.
+
+Example:
 
 ```ts
-router.get('/me', auth(Role.ADMIN, Role.DOCTOR, Role.PATIENT, Role.SUPER_ADMIN), AuthController.getMe)
+app.use(
+  cors({
+    origin: env.frontendUrl,
+    credentials: true,
+  }),
+);
 ```
 
-What it actually does, in order:
+---
 
-1. Reads the token from the `accessToken` cookie, falling back to the `Authorization` header.
-2. Verifies the JWT signature.
-3. Checks the role **from the token payload** against the roles the route allows.
-4. Looks the user up in the database by matching `id`, `email`, `name`, *and* `role` all at once — if any of those four have changed since the token was issued, the lookup fails and the request is rejected, even though the account still exists.
-5. Rejects the request only if the user's `status` is exactly `BLOCKED`. It does **not** check `isDeleted` or a `DELETED` status, so a soft-deleted account can still authenticate as long as `status` wasn't also set to `BLOCKED`.
+# Deployment
 
-## Known limitations
+The backend is deployed on Vercel.
 
-Worth knowing before you spend time debugging what looks like your own mistake:
+Production URL:
 
-- **Every error comes back as HTTP 500.** `globalErrorHandler` works out the "correct" status code internally but always sends the response with `500`, regardless. Read the `message` field, not the status code, to see what actually went wrong.
-- **No request validation.** Nothing checks that `email` looks like an email or that `password` meets any length requirement — Postgres and Prisma are the only things that will reject bad input, and usually not with a helpful message.
-- **`BCRYPT_SALT_ROUNDS` isn't used.** Password hashing in `auth.service.ts` calls `bcrypt.hash(password, 8)` with a hardcoded cost factor; the environment variable is read into `config` but nothing references it yet.
-- **No tests.** `npm test` is a placeholder.
-
-## Extending this starter
-
-New features go under `src/app/module/<name>/` as four files with strict responsibilities:
-
-| File                   | Responsibility                                                    |
-| ---------------------- | ------------------------------------------------------------------- |
-| `<name>.route.ts`      | Wires `auth(...roles)` to controller functions, exports `<Name>Routes` |
-| `<name>.controller.ts` | Reads `req.body` / `req.user`, calls the service, calls `sendResponse` |
-| `<name>.service.ts`    | All business logic and every Prisma call for the module              |
-| `<name>.interface.ts`  | The TypeScript types for the module's payloads                       |
-
-Then mount it in `app.ts` next to the existing line:
-
-```ts
-app.use('/api/v1/doctor', DoctorRoutes)
+```text
+https://budget-wear-backend.vercel.app
 ```
 
-Two rules keep the module boundaries useful rather than decorative:
+API:
 
-- **Controllers never call Prisma directly**, and **services never touch `req` or `res`.** If a service needs to know who's calling it, pass it the small `{ userId, email, name, role }` shape, not the whole request.
-- **Never spread `req.body` straight into a Prisma `create`/`update`.** Destructure the exact fields you expect. With no validation layer in front of the API, that destructuring is the only thing stopping someone from sending `"role": "ADMIN"` in a request body and having it stick.
+```text
+https://budget-wear-backend.vercel.app/api
+```
 
-## Scripts
+Build command:
 
 ```bash
-npm run dev     # start the server with auto-reload (tsx watch) — use this while developing
-npm run build   # typecheck with tsc and emit to dist/
-npm run start   # run the server once, no watching
+npm run build
 ```
 
-There's no `npm run generate` / `migrate` / `studio` wrapper — call Prisma's CLI directly:
+Start command:
 
 ```bash
-npx prisma generate     # regenerate the client after editing prisma/schema/
-npx prisma migrate dev  # create + apply a migration
-npx prisma studio       # browser GUI for your data, at http://localhost:5555
+npm start
 ```
 
-### A note on `npm run build`
+---
 
-`npm run build` is useful for catching type errors, but its output isn't directly runnable with `node`. The codebase uses extensionless relative imports (`from './app'`), which `tsx` resolves fine but Node's native ESM loader doesn't — running `node dist/src/server.js` fails with `ERR_UNSUPPORTED_DIR_IMPORT`. That's why `npm run start` runs the TypeScript source through `tsx` rather than executing `dist/`.
+# Useful Commands
 
-## Troubleshooting
+### Development
 
-**`Cannot find module '.../src/generated/prisma/client'`**
-Run `npx prisma generate` — see step 3 of [Getting started](#getting-started).
+```bash
+npm run dev
+```
 
-**`Can't reach database server` / `ECONNREFUSED`**
-Postgres isn't running, or `DATABASE_URL` points somewhere it can't reach. Confirm with `pg_isready -h localhost -p 5432`.
+### Production Build
 
-**`P1010: User was denied access on the database`**
-The username or password in `DATABASE_URL` doesn't match a real role on your Postgres server. `psql -c '\du'` lists the roles that actually exist; `whoami` gives you your OS username, which is usually your local superuser with no password.
+```bash
+npm run build
+```
 
-**Login or register throws instead of returning a token**
-Check that `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` are actually set in your `.env` — `jsonwebtoken` throws if the signing secret is `undefined`, and this project doesn't validate environment variables on startup.
+### Production Start
+
+```bash
+npm start
+```
+
+### Prisma Generate
+
+```bash
+npx prisma generate
+```
+
+### Prisma Migration
+
+```bash
+npx prisma migrate dev
+```
+
+### Production Migration
+
+```bash
+npx prisma migrate deploy
+```
+
+### Prisma Studio
+
+```bash
+npx prisma studio
+```
+
+---
+
+# Example Product Response
+
+```json
+{
+  "success": true,
+  "message": "Products fetched successfully",
+  "data": [
+    {
+      "id": 4,
+      "name": "Formal Shirt",
+      "description": "Premium cotton men's shirt",
+      "price": "1299",
+      "imageUrl": "https://res.cloudinary.com/...",
+      "publicId": "ecommerce/products/...",
+      "isActive": true,
+      "inventories": [
+        {
+          "id": 6,
+          "productId": 4,
+          "size": "M",
+          "stock": 7
+        },
+        {
+          "id": 7,
+          "productId": 4,
+          "size": "L",
+          "stock": 7
+        },
+        {
+          "id": 8,
+          "productId": 4,
+          "size": "XL",
+          "stock": 5
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+# Error Handling
+
+The API returns errors in a consistent format:
+
+```json
+{
+  "success": false,
+  "message": "Error message"
+}
+```
+
+Common errors include:
+
+```text
+Product not found
+Product image is required
+Inventory not found
+Invalid product ID
+Invalid image
+Admin token not found
+Insufficient stock
+```
+
+---
+
+# Security Notes
+
+* Never expose `JWT_SECRET`.
+* Never expose `CLOUDINARY_API_SECRET`.
+* Never commit `.env`.
+* Protect admin routes with JWT authentication.
+* Validate incoming data with Zod.
+* Validate image type and file size.
+* Keep Cloudinary secrets on the server only.
+
+---
+
+# Author
+
+**Budget Wear**
+
+Backend API for the Budget Wear men's fashion e-commerce platform.
+
+Built with:
+
+```text
+Node.js
+Express.js
+TypeScript
+PostgreSQL
+Prisma
+Cloudinary
+JWT
+Zod
+```
