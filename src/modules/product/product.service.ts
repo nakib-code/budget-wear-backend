@@ -1,5 +1,8 @@
 import prisma from "../../config/prisma";
-import type { CreateProductInput, UpdateProductInput } from "./product.validation";
+import type {
+	CreateProductInput,
+	UpdateProductInput,
+} from "./product.validation";
 
 const createProduct = async (data: CreateProductInput) => {
 	const product = await prisma.product.create({
