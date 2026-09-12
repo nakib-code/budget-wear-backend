@@ -9,22 +9,10 @@ router.get("/", productController.getAllProducts);
 router.get("/:id", productController.getProductById);
 
 // Admin routes
-router.post(
-  "/",
-  authMiddleware,
-  productController.createProduct,
-);
+router.post("/", authMiddleware, productController.createProduct);
 
-router.patch(
-  "/:id",
-  authMiddleware,
-  productController.updateProduct,
-);
+router.patch("/:id", authMiddleware, productController.updateProduct);
 
-router.delete(
-  "/:id",
-  authMiddleware,
-  productController.deleteProduct,
-);
+router.delete("/:id", authMiddleware, productController.deleteProduct);
 
 export const productRoute = router;

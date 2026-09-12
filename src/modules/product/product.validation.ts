@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 export const createProductSchema = z.object({
-  name: z.string().min(2, "Product name must be at least 2 characters"),
+	name: z.string().min(2, "Product name must be at least 2 characters"),
 
-  description: z.string().optional(),
+	description: z.string().optional(),
 
-  price: z.number().positive("Price must be greater than 0"),
+	price: z.number().positive("Price must be greater than 0"),
 
-  imageUrl: z.string().url("Invalid image URL"),
+	imageUrl: z.string().url("Invalid image URL"),
 });
 
 export const updateProductSchema = createProductSchema.partial();
