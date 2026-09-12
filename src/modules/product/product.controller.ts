@@ -1,98 +1,78 @@
 import type { Request, Response } from "express";
 
 import productService from "./product.service";
-import {
-  createProductSchema,
-  updateProductSchema,
-} from "./product.validation";
+import { createProductSchema, updateProductSchema } from "./product.validation";
 
-const createProduct = async (
-  req: Request,
-  res: Response,
-) => {
-  const validatedData = createProductSchema.parse(req.body);
+const createProduct = async (req: Request, res: Response) => {
+	const validatedData = createProductSchema.parse(req.body);
 
-  const product = await productService.createProduct(
-    validatedData,
-    req.file as Express.Multer.File,
-  );
+	const product = await productService.createProduct(
+		validatedData,
+		req.file as Express.Multer.File,
+	);
 
-  return res.status(201).json({
-    success: true,
-    message: "Product created successfully",
-    data: product,
-  });
+	return res.status(201).json({
+		success: true,
+		message: "Product created successfully",
+		data: product,
+	});
 };
 
-const getAllProducts = async (
-  _req: Request,
-  res: Response,
-) => {
-  const products = await productService.getAllProducts();
+const getAllProducts = async (_req: Request, res: Response) => {
+	const products = await productService.getAllProducts();
 
-  return res.status(200).json({
-    success: true,
-    message: "Products fetched successfully",
-    data: products,
-  });
+	return res.status(200).json({
+		success: true,
+		message: "Products fetched successfully",
+		data: products,
+	});
 };
 
-const getProductById = async (
-  req: Request,
-  res: Response,
-) => {
-  const id = Number(req.params.id);
+const getProductById = async (req: Request, res: Response) => {
+	const id = Number(req.params.id);
 
-  const product = await productService.getProductById(id);
+	const product = await productService.getProductById(id);
 
-  return res.status(200).json({
-    success: true,
-    message: "Product fetched successfully",
-    data: product,
-  });
+	return res.status(200).json({
+		success: true,
+		message: "Product fetched successfully",
+		data: product,
+	});
 };
 
-const updateProduct = async (
-  req: Request,
-  res: Response,
-) => {
-  const id = Number(req.params.id);
+const updateProduct = async (req: Request, res: Response) => {
+	const id = Number(req.params.id);
 
-  const validatedData = updateProductSchema.parse(
-    req.body,
-  );
+	const validatedData = updateProductSchema.parse(req.body);
 
-  const product = await productService.updateProduct(
-    id,
-    validatedData,
-    req.file,
-  );
+	const product = await productService.updateProduct(
+		id,
+		validatedData,
+		req.file,
+	);
 
-  return res.status(200).json({
-    success: true,
-    message: "Product updated successfully",
-    data: product,
-  });
+	return res.status(200).json({
+		success: true,
+		message: "Product updated successfully",
+		data: product,
+	});
 };
 
-const deleteProduct = async (
-  req: Request,
-  res: Response,
-) => {
-  const id = Number(req.params.id);
+const deleteProduct = async (req: Request, res: Response) => {
+	const id = Number(req.params.id);
 
-  await productService.deleteProduct(id);
+	await productService.deleteProduct(id);
 
-  return res.status(200).json({
-    success: true,
-    message: "Product deleted successfully",
-  });
+	return res.status(200).json({
+		success: true,
+		message: "Product deleted successfully",
+	});
 };
 
 export default {
-  createProduct,
-  getAllProducts,
-  getProductById,
-  updateProduct,
-  deleteProduct,
+	createProduct,
+	getAllProducts,
+	getProductById,
+	updateProduct,
+	deleteProduct,
 };

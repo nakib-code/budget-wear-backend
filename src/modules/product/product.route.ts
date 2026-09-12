@@ -14,23 +14,19 @@ router.get("/:id", productController.getProductById);
 
 // Admin routes
 router.post(
-  "/",
-  authMiddleware,
-  upload.single("image"),
-  productController.createProduct,
+	"/",
+	authMiddleware,
+	upload.single("image"),
+	productController.createProduct,
 );
 
 router.patch(
-  "/:id",
-  authMiddleware,
-  upload.single("image"),
-  productController.updateProduct,
+	"/:id",
+	authMiddleware,
+	upload.single("image"),
+	productController.updateProduct,
 );
 
-router.delete(
-  "/:id",
-  authMiddleware,
-  productController.deleteProduct,
-);
+router.delete("/:id", authMiddleware, productController.deleteProduct);
 
 export const productRoute = router;
