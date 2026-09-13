@@ -2,8 +2,8 @@ import bcrypt from "bcrypt";
 import prisma from "./config/prisma";
 
 const seed = async () => {
-	const email = "admin@example.com";
-	const password = "Admin@123";
+	const email = "mtowhid928@gmail.com";
+	const password = "towhid12A#";
 
 	const hashedPassword = await bcrypt.hash(password, 10);
 
